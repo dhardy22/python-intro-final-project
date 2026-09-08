@@ -451,3 +451,57 @@ def show_trend_chart(country):
         return
 
     plot_trend(country["name"], series, label, units)
+
+
+# ---------------------------------------------------------------------------
+# Menu and main loop
+# ---------------------------------------------------------------------------
+
+def show_menu():
+    print("\n=== Global Economic Insight Portal ===")
+    print("1. GDP per capita for a country")
+    print("2. Rank countries in a region by GDP")
+    print("3. Population growth outlook for a country")
+    print("4. Multi-year trend chart (GDP or population)")
+    print("5. Quit")
+
+
+def main():
+    raw = fetch_countries()
+    if raw is None:
+        print("Could not load country data. Exiting.")
+        return
+    countries = parse_countries(raw)
+
+    while True:
+        show_menu()
+        choice = input("Choose an option (1-5): ").strip()
+
+        if choice == "1":
+            name = input("Enter country name: ").strip()
+            matches = search_by_name(countries, name)
+            country = matches[0] if matches else None
+            if country:
+                display_gdp_per_capita(country)
+        elif choice == "2":
+            region = input("Enter region: ").strip()
+            display_region_ranking(countries, region)
+        elif choice == "3":
+            name = input("Enter country name: ").strip()
+            matches = search_by_name(countries, name)
+            country = matches[0] if matches else None
+            if country:
+                display_population_growth(country)
+        elif choice == "4":
+            name = input("Enter country name: ").strip()
+            matches = search_by_name(countries, name)
+            country = matches[0] if matches else None
+            if country:
+                show_trend_chart(country)
+        elif choice == "5":
+            print("Goodbye!")
+            break
+
+
+if __name__ == "__main__":
+    main()
