@@ -42,7 +42,7 @@ looking at:
 
 | Source | Used for | Auth |
 |---|---|---|
-| [REST Countries](https://restcountries.com) | Country names, regions, population, currency, ISO codes | API key (Bearer token) |
+| [REST Countries](https://restcountries.com) | Country names, capitals, regions, population, ISO codes | API key (Bearer token) |
 | [World Bank Open Data API](https://data.worldbank.org) | GDP, GDP per capita, population growth, historical indicators | None — fully open |
 
 ## Joining the two data sources
@@ -61,9 +61,9 @@ official names (e.g. `"Korea, Rep."` vs `"South Korea"`).
   the flat dict purely as the connector to the World Bank side.
 - **World Bank's** endpoint takes the country code directly as part of
   the URL path: `/v2/country/{country_code}/indicator/{indicator_code}`.
-  Which exact code format it expects (alpha-2 vs. alpha-3) needs to be
-  confirmed once tested live — the two APIs aren't guaranteed to prefer
-  the same one.
+  The implementation uses **alpha-3** codes for this — confirmed working
+  against the live API, and used consistently everywhere
+  `fetch_world_bank_indicator()` is called.
 
 **How the code flows through the program:** once a country is selected
 via `search_by_name()` (or picked from a disambiguation list, per the
@@ -92,6 +92,11 @@ other. This is handled the same way as other missing-data cases —
 `N/A` displayed rather than a crash — but is worth testing explicitly
 against a few known dependencies/territories once both fetch functions
 are wired together.
+
+**Note:** `parse_countries()` also captures each country's `capital`,
+even though no current feature displays it — it's kept as available
+data for a possible future feature rather than being actively used
+today.
 
 ## Requirements
 
@@ -181,6 +186,10 @@ Choose an option (1-5):
   World Bank actually has data for. Invalid ranges re-prompt with the
   valid bounds shown.
 
+**Note on the trend chart (option 4):** opening the chart blocks the
+program — the menu will not reappear in the terminal until the chart
+window is closed. This is expected behavior, not a freeze.
+
 ### Fallback behavior
 
 - **Missing GDP or indicator data** for a given country/year displays
@@ -232,3 +241,18 @@ is the extension focus — polished, well-labeled, and interactive:
 match) but is not the extension emphasis — visualization polish is
 where the additional effort goes.
 
+**Stretch, not prioritized: CSV export.** Once trend data is already
+being pulled into a flat list of dicts for charting, exporting the same
+data to CSV is a small addition (e.g. `pandas.DataFrame(...).to_csv()`
+or the stdlib `csv` module) rather than a separate effort. It's listed
+here so the option isn't lost, but it does not take priority over
+getting the visualization itself right.
+
+## Version control
+
+Development is tracked through multiple commits showing incremental
+progress (e.g. "add fetch_countries with pagination," "add GDP per
+capita calculation," "handle missing capital data") rather than one
+single commit at the end. Work is submitted via pull request, and
+commit messages describe what changed and why — not just "update
+main.py" — so the history itself documents how the project evolved.
