@@ -226,3 +226,19 @@ def get_latest_value(series):
         if entry["value"] is not None:
             return entry
     return None
+
+
+def compute_gdp_per_capita(gdp, population):
+    """Compute GDP per capita from raw GDP and population figures.
+
+    Args:
+        gdp: total GDP in current US$.
+        population: total population.
+
+    Returns:
+        GDP per capita as a float, or None if either input is missing or
+        zero (population of zero would otherwise raise ZeroDivisionError).
+    """
+    if not gdp or not population:
+        return None
+    return gdp / population
