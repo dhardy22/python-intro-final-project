@@ -152,7 +152,12 @@ def filter_by_region(countries, region):
 
 def get_valid_regions(countries):
     """Return the sorted list of distinct region names present in the data."""
-    return sorted({c["region"] for c in countries if c["region"] != "N/A"})
+    regions = []
+    for c in countries:
+        region = c["region"]
+        if region != "N/A" and region not in regions:
+            regions.append(region)
+    return sorted(regions)
 
 
 # ---------------------------------------------------------------------------
@@ -370,7 +375,11 @@ def plot_trend(country_name, series, label, units):
         print(f"No data available to plot for {label} in {country_name}.")
         return
 
-    years, values = zip(*points)
+    years = []
+    values = []
+    for year, value in points:
+        years.append(year)
+        values.append(value)
 
     fig, ax = plt.subplots()
     plt.subplots_adjust(bottom=0.28)
@@ -388,7 +397,11 @@ def plot_trend(country_name, series, label, units):
     end_slider = Slider(end_axis, "End year", years[0], years[-1], valinit=years[-1], valstep=1)
 
     def update(_):
-        start, end = start_slider.val, end_slider.val
+        """Called automatically by matplotlib whenever a slider moves.
+        Reads the current slider positions and redraws the chart with
+        the new x-axis range."""
+        start = start_slider.val
+        end = end_slider.val
         if start < end:
             ax.set_xlim(start, end)
             fig.canvas.draw_idle()
@@ -504,7 +517,11 @@ def select_region(countries):
     valid_regions = get_valid_regions(countries)
     while True:
         term = input("Enter region: ").strip()
-        match = next((r for r in valid_regions if r.lower() == term.lower()), None)
+        match = None
+        for r in valid_regions:
+            if r.lower() == term.lower():
+                match = r
+                break
         if match:
             return match
         print(f'"{term}" is not a recognized region.')
