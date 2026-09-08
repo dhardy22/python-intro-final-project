@@ -500,6 +500,19 @@ def select_country(countries, prompt="Enter country name: "):
         return choose_from_matches(matches)
 
 
+def select_region(countries):
+    valid_regions = get_valid_regions(countries)
+    while True:
+        term = input("Enter region: ").strip()
+        match = next((r for r in valid_regions if r.lower() == term.lower()), None)
+        if match:
+            return match
+        print(f'"{term}" is not a recognized region.')
+        print("Valid regions: " + ", ".join(valid_regions))
+        if input("Try again? (y/n): ").strip().lower() != "y":
+            return None
+
+
 def main():
     raw = fetch_countries()
     if raw is None:
@@ -516,8 +529,9 @@ def main():
             if country:
                 display_gdp_per_capita(country)
         elif choice == "2":
-            region = input("Enter region: ").strip()
-            display_region_ranking(countries, region)
+            region = select_region(countries)
+            if region:
+                display_region_ranking(countries, region)
         elif choice == "3":
             country = select_country(countries)
             if country:
