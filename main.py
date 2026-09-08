@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
+import mplcursors
 
 load_dotenv()  # reads MY_API_KEY from a local .env file, if one exists
 
@@ -358,8 +359,11 @@ def display_population_growth(country):
 # ---------------------------------------------------------------------------
 
 def plot_trend(country_name, series, label, units):
-    """Render a line chart for a time series, with a date range slider
-    (matplotlib.widgets.Slider) to re-slice the visible years.
+    """Render an interactive line chart for a time series.
+
+    Includes a date range slider (matplotlib.widgets.Slider) to re-slice
+    the visible years, and hover annotations (mplcursors) showing the
+    exact value at a given point.
     """
     points = [(p["year"], p["value"]) for p in series if p["value"] is not None]
     if not points:
@@ -370,7 +374,7 @@ def plot_trend(country_name, series, label, units):
 
     fig, ax = plt.subplots()
     plt.subplots_adjust(bottom=0.28)
-    ax.plot(years, values, marker="o")
+    line, = ax.plot(years, values, marker="o")
     ax.set_title(f"{label} Trend — {country_name}")
     ax.set_xlabel("Year")
     ax.set_ylabel(f"{label} ({units})")
@@ -391,6 +395,11 @@ def plot_trend(country_name, series, label, units):
 
     start_slider.on_changed(update)
     end_slider.on_changed(update)
+
+    cursor = mplcursors.cursor(line, hover=True)
+    cursor.connect("add", lambda sel: sel.annotation.set_text(
+        f"{int(sel.target[0])}: {sel.target[1]:,.0f}"
+    ))
 
     plt.show()
 
