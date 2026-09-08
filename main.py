@@ -10,6 +10,13 @@ WORLD_BANK_BASE_URL = "https://api.worldbank.org/v2"
 INDICATOR_GDP_TOTAL = "NY.GDP.MKTP.CD"
 INDICATOR_GDP_PER_CAPITA = "NY.GDP.PCAP.CD"
 INDICATOR_POPULATION_GROWTH = "SP.POP.GROW"
+INDICATOR_POPULATION_TOTAL = "SP.POP.TOTL"
+
+# Documented bounds of the data the World Bank API actually serves, used to
+# validate the trend chart's date range up front rather than discovering an
+# empty result after the request.
+WORLD_BANK_MIN_YEAR = 1960
+WORLD_BANK_MAX_YEAR = 2023
 
 
 # ---------------------------------------------------------------------------
@@ -342,3 +349,56 @@ def display_population_growth(country):
     rate = latest["value"]
     trend = "growing" if rate > 0 else "shrinking" if rate < 0 else "stable"
     print(f"Population growth rate ({latest['year']}): {rate:.2f}% — {trend}")
+
+
+# ---------------------------------------------------------------------------
+# Feature 4: multi-year trend chart (GDP or population)
+# ---------------------------------------------------------------------------
+
+def get_trend_indicator_choice():
+    options = {
+        "1": (INDICATOR_GDP_TOTAL, "GDP", "current US$"),
+        "2": (INDICATOR_POPULATION_TOTAL, "Population", "people"),
+    }
+    while True:
+        print("1. GDP\n2. Population")
+        choice = input("Chart which indicator (1-2): ").strip()
+        if choice in options:
+            return options[choice]
+        print("Please enter 1 or 2.")
+
+
+def get_year_range():
+    while True:
+        raw_start = input(f"Start year ({WORLD_BANK_MIN_YEAR}-{WORLD_BANK_MAX_YEAR}): ").strip()
+        raw_end = input(f"End year ({WORLD_BANK_MIN_YEAR}-{WORLD_BANK_MAX_YEAR}): ").strip()
+        if not (raw_start.isdigit() and raw_end.isdigit()):
+            print("Years must be whole numbers.")
+            continue
+
+        start, end = int(raw_start), int(raw_end)
+        in_bounds = WORLD_BANK_MIN_YEAR <= start <= WORLD_BANK_MAX_YEAR and WORLD_BANK_MIN_YEAR <= end <= WORLD_BANK_MAX_YEAR
+        if not in_bounds:
+            print(f"Both years must fall between {WORLD_BANK_MIN_YEAR} and {WORLD_BANK_MAX_YEAR}.")
+            continue
+        if start >= end:
+            print("Start year must be before end year.")
+            continue
+        return start, end
+
+
+def show_trend_chart(country):
+    indicator_code, label, units = get_trend_indicator_choice()
+    start, end = get_year_range()
+
+    raw = fetch_world_bank_indicator(country["alpha_3"], indicator_code, start, end)
+    if raw is None:
+        print("Could not retrieve trend data due to an API error.")
+        return
+
+    series = parse_world_bank_data(raw)
+    if not any(p["value"] is not None for p in series):
+        print(f"No data found for {label} in {country['name']} between {start} and {end}.")
+        return
+
+    print(f"Retrieved {len(series)} years of {label} data — chart rendering not yet implemented.")
