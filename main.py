@@ -9,6 +9,7 @@ WORLD_BANK_BASE_URL = "https://api.worldbank.org/v2"
 
 INDICATOR_GDP_TOTAL = "NY.GDP.MKTP.CD"
 INDICATOR_GDP_PER_CAPITA = "NY.GDP.PCAP.CD"
+INDICATOR_POPULATION_GROWTH = "SP.POP.GROW"
 
 
 # ---------------------------------------------------------------------------
@@ -319,3 +320,25 @@ def display_region_ranking(countries, region):
         print("\nNo GDP data available for:")
         for name in no_data:
             print(f"  - {name}")
+
+
+# ---------------------------------------------------------------------------
+# Feature 3: population growth outlook
+# ---------------------------------------------------------------------------
+
+def display_population_growth(country):
+    series = parse_world_bank_data(
+        fetch_world_bank_indicator(country["alpha_3"], INDICATOR_POPULATION_GROWTH) or []
+    )
+    latest = get_latest_value(series)
+
+    print(f"\n--- Population Growth Outlook: {country['name']} ---")
+    print(f"Current population: {country['population']:,}" if country["population"] else "Current population: N/A")
+
+    if latest is None:
+        print("Population growth rate: N/A")
+        return
+
+    rate = latest["value"]
+    trend = "growing" if rate > 0 else "shrinking" if rate < 0 else "stable"
+    print(f"Population growth rate ({latest['year']}): {rate:.2f}% — {trend}")
