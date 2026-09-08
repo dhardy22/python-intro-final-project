@@ -286,3 +286,36 @@ def display_gdp_per_capita(country):
 
     if computed is not None and latest_reported is not None:
         print(f"Difference (computed vs. reported): ${abs(computed - latest_reported['value']):,.2f}")
+
+
+# ---------------------------------------------------------------------------
+# Feature 2: rank countries in a region by GDP
+# ---------------------------------------------------------------------------
+
+def display_region_ranking(countries, region):
+    matches = filter_by_region(countries, region)
+
+    ranked = []
+    no_data = []
+    for c in matches:
+        series = parse_world_bank_data(
+            fetch_world_bank_indicator(c["alpha_3"], INDICATOR_GDP_TOTAL) or []
+        )
+        latest = get_latest_value(series)
+        if latest is not None:
+            ranked.append({"name": c["name"], "year": latest["year"], "gdp": latest["value"]})
+        else:
+            no_data.append(c["name"])
+    ranked.sort(key=lambda r: r["gdp"], reverse=True)
+
+    print(f"\n--- GDP Ranking: {region} ---")
+    if not ranked:
+        print("No GDP data found for any country in this region.")
+    else:
+        for i, r in enumerate(ranked, start=1):
+            print(f"{i}. {r['name']} — ${r['gdp']:,.0f} ({r['year']})")
+
+    if no_data:
+        print("\nNo GDP data available for:")
+        for name in no_data:
+            print(f"  - {name}")
