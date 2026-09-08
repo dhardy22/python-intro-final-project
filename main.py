@@ -1,6 +1,7 @@
 import requests
 import os
 from dotenv import load_dotenv
+import matplotlib.pyplot as plt
 
 load_dotenv()  # reads MY_API_KEY from a local .env file, if one exists
 
@@ -355,6 +356,24 @@ def display_population_growth(country):
 # Feature 4: multi-year trend chart (GDP or population)
 # ---------------------------------------------------------------------------
 
+def plot_trend(country_name, series, label, units):
+    """Render a line chart for a time series."""
+    points = [(p["year"], p["value"]) for p in series if p["value"] is not None]
+    if not points:
+        print(f"No data available to plot for {label} in {country_name}.")
+        return
+
+    years, values = zip(*points)
+
+    fig, ax = plt.subplots()
+    ax.plot(years, values, marker="o")
+    ax.set_title(f"{label} Trend — {country_name}")
+    ax.set_xlabel("Year")
+    ax.set_ylabel(f"{label} ({units})")
+
+    plt.show()
+
+
 def get_trend_indicator_choice():
     options = {
         "1": (INDICATOR_GDP_TOTAL, "GDP", "current US$"),
@@ -401,4 +420,4 @@ def show_trend_chart(country):
         print(f"No data found for {label} in {country['name']} between {start} and {end}.")
         return
 
-    print(f"Retrieved {len(series)} years of {label} data — chart rendering not yet implemented.")
+    plot_trend(country["name"], series, label, units)
