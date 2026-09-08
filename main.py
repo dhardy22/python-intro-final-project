@@ -202,3 +202,20 @@ def parse_world_bank_data(raw_entries):
         })
     parsed.sort(key=lambda p: p["year"])
     return parsed
+
+
+def get_latest_value(series):
+    """Return the most recent {"year", "value"} entry with a non-null value.
+
+    Args:
+        series: a list of {"year", "value"} dicts, as returned by
+            parse_world_bank_data().
+
+    Returns:
+        The most recent entry with data, or None if the series is empty
+        or every entry has a null value.
+    """
+    for entry in reversed(series):
+        if entry["value"] is not None:
+            return entry
+    return None
