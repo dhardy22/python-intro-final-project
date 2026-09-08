@@ -474,6 +474,32 @@ def get_menu_choice():
         print("Please enter a number from 1 to 5.")
 
 
+def choose_from_matches(matches):
+    print("Multiple matches found:")
+    for i, c in enumerate(matches, start=1):
+        print(f"  {i}. {c['name']}")
+    while True:
+        pick = input(f"Pick a number (1-{len(matches)}): ").strip()
+        if pick.isdigit() and 1 <= int(pick) <= len(matches):
+            return matches[int(pick) - 1]
+        print("Invalid selection.")
+
+
+def select_country(countries, prompt="Enter country name: "):
+    while True:
+        term = input(prompt).strip()
+        if not term:
+            print("Please enter a country name.")
+            continue
+        matches = search_by_name(countries, term)
+        if not matches:
+            print(f'No countries found matching "{term}".')
+            return None
+        if len(matches) == 1:
+            return matches[0]
+        return choose_from_matches(matches)
+
+
 def main():
     raw = fetch_countries()
     if raw is None:
@@ -486,24 +512,18 @@ def main():
         choice = get_menu_choice()
 
         if choice == "1":
-            name = input("Enter country name: ").strip()
-            matches = search_by_name(countries, name)
-            country = matches[0] if matches else None
+            country = select_country(countries)
             if country:
                 display_gdp_per_capita(country)
         elif choice == "2":
             region = input("Enter region: ").strip()
             display_region_ranking(countries, region)
         elif choice == "3":
-            name = input("Enter country name: ").strip()
-            matches = search_by_name(countries, name)
-            country = matches[0] if matches else None
+            country = select_country(countries)
             if country:
                 display_population_growth(country)
         elif choice == "4":
-            name = input("Enter country name: ").strip()
-            matches = search_by_name(countries, name)
-            country = matches[0] if matches else None
+            country = select_country(countries)
             if country:
                 show_trend_chart(country)
         elif choice == "5":
