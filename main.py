@@ -97,6 +97,43 @@ def parse_countries(raw_data):
         })
     return countries
 
+def search_by_name(countries, term):
+    """Return every country whose name contains the given search term.
+
+    The match is case-insensitive and a partial match (a term of "land"
+    will match "Iceland", "Ireland", "Finland", etc.).
+
+    Args:
+        countries: the flat list of country dicts from parse_countries().
+        term: the search string entered by the user.
+
+    Returns:
+        A list of matching country dicts (empty if there are no matches).
+    """
+
+    term = term.strip().lower()
+    return [c for c in countries if term in c["name"].lower()]
+
+def filter_by_region(countries, region):
+    """Return every country in a given region.
+
+    The region match is case-insensitive and exact (not a partial match
+    like search_by_name) — region names come from a known, finite list,
+    so a substring match would risk grouping unrelated regions together.
+
+    Args:
+        countries: the flat list of country dicts from parse_countries().
+        region: the region name to match (e.g. "Europe").
+
+    Returns:
+        A list of matching country dicts (empty if the region has no
+        countries in the dataset).
+    """
+    region = region.strip().lower()
+    return [c for c in countries if c["region"].lower() == region]
+
+
+
 
 def show_menu():
     print("\n=== Global Economic Insight Portal ===")
