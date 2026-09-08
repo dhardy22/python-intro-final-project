@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()  # reads MY_API_KEY from a local .env file, if one exists
 
 REST_COUNTRIES_URL = "https://api.restcountries.com/countries/v5"
+WORLD_BANK_BASE_URL = "https://api.worldbank.org/v2"
 
 
 # ---------------------------------------------------------------------------
@@ -138,3 +139,41 @@ def filter_by_region(countries, region):
 def get_valid_regions(countries):
     """Return the sorted list of distinct region names present in the data."""
     return sorted({c["region"] for c in countries if c["region"] != "N/A"})
+
+
+# ---------------------------------------------------------------------------
+# World Bank: fetching and parsing
+# ---------------------------------------------------------------------------
+
+def fetch_world_bank_indicator(country_code, indicator_code, start_year=None, end_year=None):
+    """Fetch a single indicator's time series for one country.
+
+    Args:
+        country_code: ISO country code (alpha-3, as used elsewhere in this
+            program) identifying the country.
+        indicator_code: World Bank indicator code, e.g. "NY.GDP.MKTP.CD".
+        start_year: optional inclusive start of the date range to request.
+        end_year: optional inclusive end of the date range to request.
+
+    Returns:
+        A list of raw World Bank data entries (dicts with "date" and
+        "value" keys, among others), or None if the request failed
+        (network error or non-200 status code).
+    """
+    url = f"{WORLD_BANK_BASE_URL}/country/{country_code}/indicator/{indicator_code}"
+    params = {"format": "json", "per_page": 1000}
+    if start_year is not None and end_year is not None:
+        params["date"] = f"{start_year}:{end_year}"
+
+    try:
+        r = requests.get(url, params=params)
+    except requests.exceptions.RequestException as e:
+        print(f"World Bank request failed: {e}")
+        return None
+
+    if r.status_code != 200:
+        print(f"World Bank API returned status {r.status_code}")
+        return None
+
+    payload = r.json()
+    return payload[1]
