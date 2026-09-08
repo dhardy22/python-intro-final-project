@@ -7,6 +7,9 @@ load_dotenv()  # reads MY_API_KEY from a local .env file, if one exists
 REST_COUNTRIES_URL = "https://api.restcountries.com/countries/v5"
 WORLD_BANK_BASE_URL = "https://api.worldbank.org/v2"
 
+INDICATOR_GDP_TOTAL = "NY.GDP.MKTP.CD"
+INDICATOR_GDP_PER_CAPITA = "NY.GDP.PCAP.CD"
+
 
 # ---------------------------------------------------------------------------
 # REST Countries: fetching and parsing
@@ -242,3 +245,44 @@ def compute_gdp_per_capita(gdp, population):
     if not gdp or not population:
         return None
     return gdp / population
+
+
+# ---------------------------------------------------------------------------
+# Feature 1: GDP per capita for a country
+# ---------------------------------------------------------------------------
+
+def display_gdp_per_capita(country):
+    gdp_series = parse_world_bank_data(
+        fetch_world_bank_indicator(country["alpha_3"], INDICATOR_GDP_TOTAL) or []
+    )
+    reported_series = parse_world_bank_data(
+        fetch_world_bank_indicator(country["alpha_3"], INDICATOR_GDP_PER_CAPITA) or []
+    )
+    latest_gdp = get_latest_value(gdp_series)
+    latest_reported = get_latest_value(reported_series)
+
+    print(f"\n--- GDP per Capita: {country['name']} ---")
+
+    if latest_gdp is None and latest_reported is None:
+        print("No GDP data found for this country.")
+        return
+
+    print(f"Population: {country['population']:,}" if country["population"] else "Population: N/A")
+
+    if latest_gdp is not None:
+        print(f"GDP, current US$ ({latest_gdp['year']}): ${latest_gdp['value']:,.0f}")
+    else:
+        print("GDP, current US$: N/A")
+
+    computed = compute_gdp_per_capita(
+        latest_gdp["value"] if latest_gdp else None, country["population"]
+    )
+    print(f"Computed GDP per capita: ${computed:,.2f}" if computed is not None else "Computed GDP per capita: N/A")
+
+    if latest_reported is not None:
+        print(f"World Bank reported GDP per capita ({latest_reported['year']}): ${latest_reported['value']:,.2f}")
+    else:
+        print("World Bank reported GDP per capita: N/A")
+
+    if computed is not None and latest_reported is not None:
+        print(f"Difference (computed vs. reported): ${abs(computed - latest_reported['value']):,.2f}")
