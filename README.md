@@ -232,18 +232,3 @@ is the extension focus — polished, well-labeled, and interactive:
 match) but is not the extension emphasis — visualization polish is
 where the additional effort goes.
 
-**Stretch, not prioritized: CSV export.** Once trend data is already
-being pulled into a flat list of dicts for charting, exporting the same
-data to CSV is a small addition (e.g. `pandas.DataFrame(...).to_csv()`
-or the stdlib `csv` module) rather than a separate effort. It's listed
-here so the option isn't lost, but it does not take priority over
-getting the visualization itself right.
-
-## Version control
-
-Development is tracked through multiple commits showing incremental
-progress (e.g. "add fetch_countries with pagination," "add GDP per
-capita calculation," "handle missing capital data") rather than one
-single commit at the end. Work is submitted via pull request, and
-commit messages describe what changed and why — not just "update
-main.py" — so the history itself documents how the project evolved.
