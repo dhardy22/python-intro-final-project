@@ -177,3 +177,28 @@ def fetch_world_bank_indicator(country_code, indicator_code, start_year=None, en
 
     payload = r.json()
     return payload[1]
+
+
+def parse_world_bank_data(raw_entries):
+    """Reshape raw World Bank entries into a flat, year-sorted list.
+
+    Args:
+        raw_entries: the list returned by fetch_world_bank_indicator().
+
+    Returns:
+        A list of {"year": int, "value": float or None} dicts, sorted
+        oldest to newest. A None value means the World Bank has no figure
+        for that year, as distinct from a genuine zero.
+    """
+    parsed = []
+    for entry in raw_entries:
+        year = entry.get("date")
+        if year is None:
+            continue
+        value = entry.get("value")
+        parsed.append({
+            "year": int(year),
+            "value": float(value) if value is not None else None,
+        })
+    parsed.sort(key=lambda p: p["year"])
+    return parsed
