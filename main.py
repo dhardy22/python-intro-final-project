@@ -2,6 +2,14 @@ import requests
 import os
 from dotenv import load_dotenv
 
+load_dotenv()  # reads MY_API_KEY from a local .env file, if one exists
+
+REST_COUNTRIES_URL = "https://api.restcountries.com/countries/v5"
+WORLD_BANK_BASE_URL = "https://api.worldbank.org/v2"
+
+# ---------------------------------------------------------------------------
+# REST Countries: fetching and parsing
+# ---------------------------------------------------------------------------
 
 def fetch_countries():
     """Fetch every country from the API, paging through results.
@@ -58,7 +66,7 @@ def parse_countries(raw_data):
     This function pulls just the fields we need into a flat, predictable
     shape.
 
-    The ISO codes (alpha_2, alpha_3, ccn3) are carried through even though
+    The ISO 3166 country codes (alpha_2, alpha_3, ccn3) are carried through even though
     nothing displays them directly — they're the join key into the World
     Bank API, which is keyed by country code rather than country name.
 
