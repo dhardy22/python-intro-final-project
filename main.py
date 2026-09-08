@@ -466,6 +466,14 @@ def show_menu():
     print("5. Quit")
 
 
+def get_menu_choice():
+    while True:
+        choice = input("Choose an option (1-5): ").strip()
+        if choice in {"1", "2", "3", "4", "5"}:
+            return choice
+        print("Please enter a number from 1 to 5.")
+
+
 def main():
     raw = fetch_countries()
     if raw is None:
@@ -475,7 +483,7 @@ def main():
 
     while True:
         show_menu()
-        choice = input("Choose an option (1-5): ").strip()
+        choice = get_menu_choice()
 
         if choice == "1":
             name = input("Enter country name: ").strip()
