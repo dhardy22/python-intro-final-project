@@ -2,6 +2,7 @@ import requests
 import os
 from dotenv import load_dotenv
 import matplotlib.pyplot as plt
+from matplotlib.widgets import Slider
 
 load_dotenv()  # reads MY_API_KEY from a local .env file, if one exists
 
@@ -357,7 +358,9 @@ def display_population_growth(country):
 # ---------------------------------------------------------------------------
 
 def plot_trend(country_name, series, label, units):
-    """Render a line chart for a time series."""
+    """Render a line chart for a time series, with a date range slider
+    (matplotlib.widgets.Slider) to re-slice the visible years.
+    """
     points = [(p["year"], p["value"]) for p in series if p["value"] is not None]
     if not points:
         print(f"No data available to plot for {label} in {country_name}.")
@@ -366,10 +369,28 @@ def plot_trend(country_name, series, label, units):
     years, values = zip(*points)
 
     fig, ax = plt.subplots()
+    plt.subplots_adjust(bottom=0.28)
     ax.plot(years, values, marker="o")
     ax.set_title(f"{label} Trend — {country_name}")
     ax.set_xlabel("Year")
     ax.set_ylabel(f"{label} ({units})")
+
+    # Two plain Sliders (rather than a single RangeSlider) so both ends of
+    # the visible range are independently adjustable using the native
+    # matplotlib.widgets.Slider widget called for in the spec.
+    start_axis = plt.axes([0.15, 0.12, 0.7, 0.03])
+    end_axis = plt.axes([0.15, 0.05, 0.7, 0.03])
+    start_slider = Slider(start_axis, "Start year", years[0], years[-1], valinit=years[0], valstep=1)
+    end_slider = Slider(end_axis, "End year", years[0], years[-1], valinit=years[-1], valstep=1)
+
+    def update(_):
+        start, end = start_slider.val, end_slider.val
+        if start < end:
+            ax.set_xlim(start, end)
+            fig.canvas.draw_idle()
+
+    start_slider.on_changed(update)
+    end_slider.on_changed(update)
 
     plt.show()
 
