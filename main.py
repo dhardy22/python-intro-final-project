@@ -158,7 +158,9 @@ def fetch_world_bank_indicator(country_code, indicator_code, start_year=None, en
     Returns:
         A list of raw World Bank data entries (dicts with "date" and
         "value" keys, among others), or None if the request failed
-        (network error or non-200 status code).
+        (network error or non-200 status code). Returns an empty list if
+        the request succeeded but the country/indicator combination has
+        no data.
     """
     url = f"{WORLD_BANK_BASE_URL}/country/{country_code}/indicator/{indicator_code}"
     params = {"format": "json", "per_page": 1000}
@@ -176,6 +178,11 @@ def fetch_world_bank_indicator(country_code, indicator_code, start_year=None, en
         return None
 
     payload = r.json()
+    # A successful response is [metadata, data]. An invalid country or
+    # indicator code still returns 200 but with data as None (or missing
+    # entirely), so that's treated as "no data" rather than an error.
+    if not isinstance(payload, list) or len(payload) < 2 or payload[1] is None:
+        return []
     return payload[1]
 
 
