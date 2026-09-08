@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()  # reads MY_API_KEY from a local .env file, if one exists
 
 REST_COUNTRIES_URL = "https://api.restcountries.com/countries/v5"
-WORLD_BANK_BASE_URL = "https://api.worldbank.org/v2"
+
 
 # ---------------------------------------------------------------------------
 # REST Countries: fetching and parsing
@@ -52,10 +52,11 @@ def fetch_countries():
 
         offset += payload["meta"]["limit"]  # advance by whatever page size the API actually used
 
-    # Note: only "objects" is carried forward — "meta" applied to a
+    # Note: only "objects" is carried forward here — "meta" applied to a
     # single page and doesn't represent the combined result, so it's
     # intentionally dropped rather than merged from the last page.
     return {"data": {"objects": all_objects}}
+
 
 def parse_countries(raw_data):
     """Reshape the raw API response into a simple, flat list of dicts.
@@ -66,7 +67,7 @@ def parse_countries(raw_data):
     This function pulls just the fields we need into a flat, predictable
     shape.
 
-    The ISO 3166 country codes (alpha_2, alpha_3, ccn3) are carried through even though
+    The ISO codes (alpha_2, alpha_3, ccn3) are carried through even though
     nothing displays them directly — they're the join key into the World
     Bank API, which is keyed by country code rather than country name.
 
@@ -97,6 +98,7 @@ def parse_countries(raw_data):
         })
     return countries
 
+
 def search_by_name(countries, term):
     """Return every country whose name contains the given search term.
 
@@ -110,9 +112,9 @@ def search_by_name(countries, term):
     Returns:
         A list of matching country dicts (empty if there are no matches).
     """
-
     term = term.strip().lower()
     return [c for c in countries if term in c["name"].lower()]
+
 
 def filter_by_region(countries, region):
     """Return every country in a given region.
@@ -133,13 +135,6 @@ def filter_by_region(countries, region):
     return [c for c in countries if c["region"].lower() == region]
 
 
-
-
-def show_menu():
-    print("\n=== Global Economic Insight Portal ===")
-    print("1. GDP per capita for a country")
-    print("2. Rank countries in a region by GDP")
-    print("3. Population growth outlook for a country")
-    print("4. Multi-year trend chart (GDP or population)")
-    print("5. Quit")
-
+def get_valid_regions(countries):
+    """Return the sorted list of distinct region names present in the data."""
+    return sorted({c["region"] for c in countries if c["region"] != "N/A"})
