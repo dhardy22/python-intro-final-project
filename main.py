@@ -45,7 +45,7 @@ def fetch_countries():
 
     while True:
         try:
-            r = requests.get(
+            response = requests.get(
                 REST_COUNTRIES_URL,
                 headers={"Authorization": f'Bearer {os.getenv("MY_API_KEY")}'},
                 params={"offset": offset}
@@ -54,14 +54,16 @@ def fetch_countries():
             print(f"Request failed: {e}")
             return None
 
-        if r.status_code != 200:
-            print(f"REST Countries API returned status {r.status_code}")
+        if response.status_code != 200:
+            print(f"REST Countries API returned status {response.status_code}")
             return None
 
-        payload = r.json()["data"]
+        payload = response.json()["data"]
         all_objects.extend(payload["objects"])
 
         # Stop paging once the API says there's nothing left to fetch
+        # Generated with Claude code to handle pagenation; I needed it to understand the shape of
+        # the request object.
         if not payload["meta"].get("more", False):
             break
 
@@ -95,18 +97,18 @@ def parse_countries(raw_data):
          "alpha_2": ..., "alpha_3": ..., "ccn3": ...}
     """
     countries = []
-    for c in raw_data["data"]["objects"]:
+    for country in raw_data["data"]["objects"]:
         # Some countries have no capital listed at all, so guard against
         # an empty list before indexing into it.
-        capitals = c.get("capitals", [])
+        capitals = country.get("capitals", [])
         capital = capitals[0]["name"] if capitals else "N/A"
-        codes = c.get("codes", {})
+        codes = country.get("codes", {})
 
         countries.append({
-            "name": c["names"]["common"],
+            "name": country["names"]["common"],
             "capital": capital,
-            "region": c.get("region", "N/A"),
-            "population": c.get("population", 0),
+            "region": country.get("region", "N/A"),
+            "population": country.get("population", 0),
             "alpha_2": codes.get("alpha_2", "N/A"),
             "alpha_3": codes.get("alpha_3", "N/A"),
             "ccn3": codes.get("ccn3", "N/A"),
@@ -128,7 +130,7 @@ def search_by_name(countries, term):
         A list of matching country dicts (empty if there are no matches).
     """
     term = term.strip().lower()
-    return [c for c in countries if term in c["name"].lower()]
+    return [country for country in countries if term in country["name"].lower()]
 
 
 def filter_by_region(countries, region):
@@ -147,15 +149,15 @@ def filter_by_region(countries, region):
         countries in the dataset).
     """
     region = region.strip().lower()
-    return [c for c in countries if c["region"].lower() == region]
+    return [country for country in countries if country["region"].lower() == region]
 
 
 def get_valid_regions(countries):
     """Return the sorted list of distinct region names present in the data."""
     regions = []
-    for c in countries:
-        region = c["region"]
-        if region != "N/A" and region not in regions:
+    for country in countries:
+        region = country["region"]
+        if region != "N/A" and region not in regions: #adds region to regions list if it is not already present and is not "N/A"
             regions.append(region)
     return sorted(regions)
 
@@ -187,16 +189,16 @@ def fetch_world_bank_indicator(country_code, indicator_code, start_year=None, en
         params["date"] = f"{start_year}:{end_year}"
 
     try:
-        r = requests.get(url, params=params)
+        response = requests.get(url, params=params)
     except requests.exceptions.RequestException as e:
         print(f"World Bank request failed: {e}")
         return None
 
-    if r.status_code != 200:
-        print(f"World Bank API returned status {r.status_code}")
+    if response.status_code != 200:
+        print(f"World Bank API returned status {response.status_code}")
         return None
 
-    payload = r.json()
+    payload = response.json()
     # A successful response is [metadata, data]. An invalid country or
     # indicator code still returns 200 but with data as None (or missing
     # entirely), so that's treated as "no data" rather than an error.
@@ -328,8 +330,8 @@ def display_region_ranking(countries, region):
     if not ranked:
         print("No GDP data found for any country in this region.")
     else:
-        for i, r in enumerate(ranked, start=1):
-            print(f"{i}. {r['name']} — ${r['gdp']:,.0f} ({r['year']})")
+        for i, entry in enumerate(ranked, start=1):
+            print(f"{i}. {entry['name']} — ${entry['gdp']:,.0f} ({entry['year']})")
 
     if no_data:
         print("\nNo GDP data available for:")
@@ -355,7 +357,13 @@ def display_population_growth(country):
         return
 
     rate = latest["value"]
-    trend = "growing" if rate > 0 else "shrinking" if rate < 0 else "stable"
+    if rate > 0:
+        trend = "growing" 
+    elif rate < 0:
+        trend = "shrinking" 
+    else:
+        trend = "stable"
+
     print(f"Population growth rate ({latest['year']}): {rate:.2f}% — {trend}")
 
 
@@ -518,9 +526,9 @@ def select_region(countries):
     while True:
         term = input("Enter region: ").strip()
         match = None
-        for r in valid_regions:
-            if r.lower() == term.lower():
-                match = r
+        for region in valid_regions:
+            if region.lower() == term.lower():
+                match = region
                 break
         if match:
             return match
