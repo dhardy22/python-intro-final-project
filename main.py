@@ -63,7 +63,7 @@ def fetch_countries():
 
         # Stop paging once the API says there's nothing left to fetch
         # Generated with Claude code to handle pagenation; I needed it to understand the shape of
-        # the request object.
+        # the response object.
         if not payload["meta"].get("more", False):
             break
 
@@ -271,13 +271,13 @@ def compute_gdp_per_capita(gdp, population):
 
 def display_gdp_per_capita(country):
     gdp_series = parse_world_bank_data(
-        fetch_world_bank_indicator(country["alpha_3"], INDICATOR_GDP_TOTAL) or []
-    )
+        fetch_world_bank_indicator(country["alpha_3"], INDICATOR_GDP_TOTAL) or [] # passes country's alpha_3 code and 
+    )                                                                             # indicator code for GDP to fetch_world_bank_indicator() to get the GDP data series
     reported_series = parse_world_bank_data(
         fetch_world_bank_indicator(country["alpha_3"], INDICATOR_GDP_PER_CAPITA) or []
     )
-    latest_gdp = get_latest_value(gdp_series)
-    latest_reported = get_latest_value(reported_series)
+    latest_gdp = get_latest_value(gdp_series)           # Latest GDP from World Bank data series
+    latest_reported = get_latest_value(reported_series) # Latest reported GDP per capita from World Bank data series
 
     print(f"\n--- GDP per Capita: {country['name']} ---")
 
@@ -315,7 +315,7 @@ def display_region_ranking(countries, region):
 
     ranked = []
     no_data = []
-    for c in matches:
+    for c in matches: 
         series = parse_world_bank_data(
             fetch_world_bank_indicator(c["alpha_3"], INDICATOR_GDP_TOTAL) or []
         )
