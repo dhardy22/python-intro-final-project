@@ -373,6 +373,8 @@ def display_population_growth(country):
 
 def plot_trend(country_name, series, label, units):
     """Render a line chart for a time series, with hover annotations
+    date range slider (matplotlib.widgets.Slider) to re-slice
+    the visible years, and hover annotations
     (mplcursors) showing the exact value at a given point."""
     points = [(p["year"], p["value"]) for p in series if p["value"] is not None]
     if not points:
