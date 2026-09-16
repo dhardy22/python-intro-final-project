@@ -386,17 +386,20 @@ def plot_trend(country_name, series, label, units):
         values.append(value)
 
     fig, ax = plt.subplots()
+    plt.subplots_adjust(bottom=0.25)  # leave room for sliders
     line, = ax.plot(years, values, marker="o")
     ax.set_title(f"{label} Trend — {country_name}")
     ax.set_xlabel("Year")
     ax.set_ylabel(f"{label} ({units})")
+        # Two plain Sliders (rather than a single RangeSlider) so both ends of
+    # the visible range are independently adjustable using the native
+    # matplotlib.widgets.Slider widget called for in the spec.
+    start_axis = plt.axes([0.15, 0.12, 0.7, 0.03])
+    end_axis = plt.axes([0.15, 0.05, 0.7, 0.03])
+    start_slider = Slider(start_axis, "Start year", years[0], years[-1], valinit=years[0], valstep=1)
+    end_slider = Slider(end_axis, "End year", years[0], years[-1], valinit=years[-1], valstep=1)
 
-    cursor = mplcursors.cursor(line, hover=True)
-    cursor.connect("add", lambda sel: sel.annotation.set_text(
-        f"{int(sel.target[0])}: {sel.target[1]:,.0f}"
-    ))
-
-    plt.show()
+    #plt.show()
 
     def update(_):
         """Called automatically by matplotlib whenever a slider moves.
@@ -410,6 +413,11 @@ def plot_trend(country_name, series, label, units):
 
     start_slider.on_changed(update)
     end_slider.on_changed(update)
+
+    cursor = mplcursors.cursor(line, hover=True)
+    cursor.connect("add", lambda sel: sel.annotation.set_text(
+        f"{int(sel.target[0])}: {sel.target[1]:,.0f}"
+        ))
 
     cursor = mplcursors.cursor(line, hover=True)
     cursor.connect("add", lambda sel: sel.annotation.set_text(
